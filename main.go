@@ -35,13 +35,16 @@ const (
 
 var (
 	cep     = flag.String("cep", "", "CEP number. For instance: 01001000")
-    format = flag.String("format", "json", "Output format. Possible values: json, piped")
+	format  = flag.String("format", "json", "Output format. Possible values: json, piped")
 	cepInfo *CepInfo
 )
 
 func usage() {
-	exec, _ := os.Executable()
-	fmt.Printf("Usage: %s -cep <cep>\n", exec)
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage of %s: \n", os.Args[0])
+		flag.PrintDefaults()
+	}
+	flag.Usage()
 	os.Exit(1)
 }
 
@@ -50,6 +53,7 @@ func main() {
 	if *cep == "" {
 		usage()
 	}
+
 	url := fmt.Sprintf(urlTemplate, *cep)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -59,12 +63,12 @@ func main() {
 
 	cepInfo = newCepInfo(resp.Body)
 
-    switch *format {
-    case "json":
-        cepInfo.Json(os.Stdout)
-    case "piped": 
-        cepInfo.Piped(os.Stdout)
-    }
+	switch *format {
+	case "json":
+		cepInfo.Json(os.Stdout)
+	case "piped":
+		cepInfo.Piped(os.Stdout)
+	}
 }
 
 func newCepInfo(reader io.Reader) *CepInfo {
